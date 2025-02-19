@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Categorie;
 use App\Entity\Produit;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,7 +41,49 @@ class ProduitController extends AbstractController
 
         return $this->json($produit, 200, [], ['groups' => 'produit:read']);
     }
+    #[Route('/', name: 'create', methods: ['POST'])]
+    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        // Récupérer les données envoyées
+        $data = json_decode($request->getContent(), true);
 
+        // Vérifier que les données requises sont présentes
+        if (!isset($data['nom'], $data['description'], $data['prix'], $data['image'], $data['categorie_id'])) {
+            return $this->json(['message' => 'Données manquantes'], 400);
+        }
+
+        // Vérification du type et de la validité du prix
+        if (!is_numeric($data['prix']) || $data['prix'] < 0) {
+            return $this->json(['message' => 'Prix invalide'], 400);
+        }
+
+        // Récupérer la catégorie associée
+        $categorie = $entityManager->getRepository(Categorie::class)->find($data['categorie_id']);
+        if (!$categorie) {
+            return $this->json(['message' => 'Catégorie non trouvée'], 404);
+        }
+
+        // Créer un nouveau produit
+        $produit = new Produit();
+        $produit->setNom($data['nom']);
+        $produit->setDescription($data['description']);
+        $produit->setPrix((float) $data['prix']);
+        $produit->setImage($data['image']);
+        $produit->setCategorie($categorie);
+
+        // Enregistrer dans la base de données
+        try {
+            $entityManager->persist($produit);
+            $entityManager->flush();
+
+            return $this->json([
+                'message' => 'Produit créé avec succès',
+                'id' => $produit->getId()
+            ], 201);
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Erreur lors de la création', 'error' => $e->getMessage()], 500);
+        }
+    }
 
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(ProduitRepository $produitRepository, EntityManagerInterface $entityManager, Request $request, int $id): JsonResponse

@@ -6,6 +6,8 @@ use App\Repository\ProduitRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+
 #[ORM\Entity()]
 class Produit
 {
@@ -23,9 +25,10 @@ class Produit
     #[Groups("produit:read")]
     private string $description;
 
-    #[ORM\Column(type: "decimal", scale: 2)]
+    #[ORM\Column]
     #[Groups(["produit:read", "commande:read"])]
-    private float $prix;
+    #[Assert\Regex(pattern: "/^[0-9]+(\.[0-9]{1,2})?$/", message: "Prix invalide")]
+    private ?float $prix = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     #[Groups(["produit:read","commande:read"])]
@@ -63,14 +66,26 @@ class Produit
         return $this;
     }
 
+    // public function getPrix(): ?float
+    // {
+    //     return $this->prix;
+    // }
+
+    // public function setPrix(float $prix): static
+    // {
+    //     $this->prix = $prix;
+    //     return $this;
+    // }
+
     public function getPrix(): ?float
     {
         return $this->prix;
     }
 
-    public function setPrix(float $prix): static
+    public function setPrix(?float $prix): self
     {
         $this->prix = $prix;
+
         return $this;
     }
 
