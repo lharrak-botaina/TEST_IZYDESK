@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[Route('/api/categories', name: 'api_categories_')]
 class CategorieController extends AbstractController
 {
-    #[Route('/', name: 'list', methods: ['GET'])]
+    #[Route('', name: 'list', methods: ['GET'])]
     public function list(CategorieRepository $categorieRepository, SerializerInterface $serializer): JsonResponse
     {
         $categories = $categorieRepository->findAll();
@@ -35,7 +35,7 @@ class CategorieController extends AbstractController
         return $this->json($categorie, 200, [], ['groups' => 'categorie:read']);
     }
 
-    #[Route('/', name: 'create', methods: ['POST'])]
+    #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);

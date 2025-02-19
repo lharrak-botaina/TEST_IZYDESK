@@ -5,7 +5,13 @@ const Sidebar = () => {
   return (
     <div
       className="d-flex flex-column vh-100  text-white p-3"
-      style={{ width: "250px", position: "fixed", top: 0, left: 0 ,backgroundColor:"#9B004A21" }}
+      style={{
+        width: "250px",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        backgroundColor: "#9B004A21",
+      }}
     >
       {/* Sidebar Header */}
       <div className="mb-4 text-center">
@@ -29,9 +35,9 @@ const Sidebar = () => {
         <Nav.Link as={Link} to="/products" className="text-black">
           <i className="fas fa-th-large me-2"></i> Produits
         </Nav.Link>
-        {/* <Nav.Link as={Link} to="/customers" className="text-white">
-          <i className="fas fa-users me-2"></i> Customers
-        </Nav.Link> */}
+        <Nav.Link as={Link} to="/categories" className="text-black">
+          <i className="fas fa-users me-2"></i> categories
+        </Nav.Link>
       </Nav>
     </div>
   );

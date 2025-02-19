@@ -1,50 +1,95 @@
-import { useEffect, useState } from "react";
-import { fetchProducts } from "../services/api";
-import { Button, Modal, Form, Alert, Spinner } from "react-bootstrap";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
+import {
+  fetchProduits,
+  createProduit,
+  updateProduit,
+  deleteProduit,
+  fetchCategories,
+} from "../services/api";
+import { Button, Table, Modal, Form, Spinner, Alert } from "react-bootstrap";
 
-const API_URL = "http://127.0.0.1:8000/api"; // ✅ Ensure correct backend URL
-
-const Products = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const ProduitsPage = () => {
+  const [produits, setProduits] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [show, setShow] = useState(false);
-  const [newProduct, setNewProduct] = useState({
+  const [newProduit, setNewProduit] = useState({
     nom: "",
     categorie: "",
     prix: "",
   });
+  const [editingProduit, setEditingProduit] = useState(null);
 
   useEffect(() => {
-    const getProducts = async () => {
-      try {
-        const data = await fetchProducts();
-        setProducts(data);
-      } catch (err) {
-        setError("Failed to load products.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getProducts();
+    loadProduits();
+    loadCategories();
   }, []);
 
-  // ✅ Function to handle form submission
-  const handleAddProduct = async (e) => {
+  const loadProduits = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchProduits();
+      setProduits(data);
+      setError(null);
+    } catch (err) {
+      setError("Error loading products");
+    }
+    setLoading(false);
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await fetchCategories();
+      setCategories(data);
+    } catch (err) {
+      setError("Error loading categories");
+    }
+  };
+
+  const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_URL}/produits`, newProduct, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      // ✅ Update product list with the new product
-      setProducts([...products, response.data]);
+      if (editingProduit) {
+        await updateProduit(editingProduit.id, {
+          ...editingProduit,
+          categorie: categories.find(
+            (c) => c.id === parseInt(editingProduit.categorie)
+          ), // Send the full category object
+        });
+      } else {
+        await createProduit({
+          ...newProduit,
+          categorie: categories.find(
+            (c) => c.id === parseInt(newProduit.categorie)
+          ), // Send the full category object
+        });
+      }
+      setNewProduit({ nom: "", categorie: "", prix: "" });
+      setEditingProduit(null);
       setShow(false);
-      setNewProduct({ nom: "", categorie: "", prix: "" });
-    } catch (error) {
-      console.error("Error adding product:", error);
+      loadProduits();
+    } catch (err) {
+      setError("Error saving product");
+    }
+  };
+
+  const handleEdit = (produit) => {
+    setEditingProduit({
+      ...produit,
+      categorie: produit.categorie.id, // Store only the category ID
+    });
+    setShow(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await deleteProduit(id);
+        loadProduits();
+      } catch (err) {
+        setError("Error deleting product");
+      }
     }
   };
 
@@ -53,7 +98,7 @@ const Products = () => {
       <h1>Fresh Bootstrap Table - Products</h1>
 
       {/* Add Product Button */}
-      <Button variant="primary" className="mb-3" onClick={() => setShow(true)}>
+      <Button variant="dark" className="mb-3" onClick={() => setShow(true)}>
         + Add Product
       </Button>
 
@@ -62,99 +107,134 @@ const Products = () => {
 
       {!loading && !error && (
         <div className="fresh-table full-color-orange">
-         
-          <table
+          <Table
             id="fresh-table"
+            striped
+            bordered
+            hover
             className="table"
-            data-toggle="table"
-            data-search="true"
-            data-pagination="true"
-            data-page-size="5"
+            responsive
           >
             <thead>
               <tr>
-                <th data-field="id">ID</th>
-                <th data-field="name" data-sortable="true">
-                  Nom
-                </th>
-                <th data-field="category" data-sortable="true">
-                  categorie
-                </th>
-                <th data-field="price" data-sortable="true">
-                  prix ($)
-                </th>
-
-                <th data-field="actions">Actions</th>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Categorie</th>
+                <th>Prix ($)</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
-                <tr key={product.id}>
-                  <td>{product.id}</td>
-                  <td>{product.nom}</td>
-                  <td>{product.categorie.nom}</td>
-                  <td>{product.prix}</td>
+              {produits.map((produit) => (
+                <tr key={produit.id}>
+                  <td>{produit.id}</td>
+                  <td>{produit.nom}</td>
+                  <td>{produit.categorie.nom}</td> {/* Display category name */}
+                  <td>{produit.prix}</td>
                   <td>
-                    <Button variant="info" size="sm" className="me-2">
+                    <Button
+                      variant="info"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleEdit(produit)}
+                    >
                       <i className="fa fa-edit"></i>
                     </Button>
-                    <Button variant="danger" size="sm">
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(produit.id)}
+                    >
                       <i className="fa fa-trash"></i>
                     </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </div>
       )}
 
-      {/* Add Product Modal */}
+      {/* Add/Edit Product Modal */}
       <Modal show={show} onHide={() => setShow(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add New Product</Modal.Title>
+          <Modal.Title>
+            {editingProduit ? "Edit Product" : "Add Product"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleAddProduct}>
+          <Form onSubmit={handleCreateOrUpdate}>
             <Form.Group className="mb-3">
               <Form.Label>Product Name</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter product name"
-                value={newProduct.nom}
+                value={editingProduit ? editingProduit.nom : newProduit.nom}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, nom: e.target.value })
+                  editingProduit
+                    ? setEditingProduit({
+                        ...editingProduit,
+                        nom: e.target.value,
+                      })
+                    : setNewProduit({ ...newProduit, nom: e.target.value })
                 }
                 required
               />
             </Form.Group>
+
+            {/* Dropdown for Category */}
             <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter category"
-                value={newProduct.categorie}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, categorie: e.target.value })
+              <Form.Select
+                value={
+                  editingProduit
+                    ? editingProduit.categorie
+                    : newProduit.categorie
                 }
+                onChange={(e) => {
+                  if (editingProduit) {
+                    setEditingProduit({
+                      ...editingProduit,
+                      categorie: parseInt(e.target.value),
+                    });
+                  } else {
+                    setNewProduit({
+                      ...newProduit,
+                      categorie: parseInt(e.target.value),
+                    });
+                  }
+                }}
                 required
-              />
+              >
+                <option value="">Select Category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nom}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Price</Form.Label>
               <Form.Control
                 type="number"
                 placeholder="Enter price"
-                value={newProduct.prix}
+                value={editingProduit ? editingProduit.prix : newProduit.prix}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, prix: e.target.value })
+                  editingProduit
+                    ? setEditingProduit({
+                        ...editingProduit,
+                        prix: e.target.value,
+                      })
+                    : setNewProduit({ ...newProduit, prix: e.target.value })
                 }
                 required
               />
             </Form.Group>
-            
+
             <Button variant="primary" type="submit">
-              Add Product
+              {editingProduit ? "Update Product" : "Add Product"}
             </Button>
           </Form>
         </Modal.Body>
@@ -163,4 +243,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default ProduitsPage;

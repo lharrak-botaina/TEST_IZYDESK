@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./layout/Sidebar";
 import Dashboard from "./pages/Dashboard";
-// import Orders from "./pages/Orders";
+import Categories from "./pages/Categories";
 import Products from "./pages/Products";
 // import Customers from "./pages/Customers";
 
@@ -15,7 +15,7 @@ function App() {
       <div className="container-fluid p-4" style={{ marginLeft: "250px" }}>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
-          {/* <Route path="/orders" element={<Orders />} /> */}
+          <Route path="/categories" element={<Categories />} />
           <Route path="/products" element={<Products />} />
           {/* <Route path="/customers" element={<Customers />} /> */}
         </Routes>

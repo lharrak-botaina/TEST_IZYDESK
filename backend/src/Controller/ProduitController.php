@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 #[Route('/api/produits', name: 'api_produits_')]
 class ProduitController extends AbstractController
 {
-    #[Route('/', name: 'list', methods: ['GET'])]
+    #[Route('', name: 'list', methods: ['GET'])]
     public function list(ProduitRepository $produitRepository, SerializerInterface $serializer): JsonResponse
     {
         $produits = $produitRepository->findAll();
@@ -41,7 +41,7 @@ class ProduitController extends AbstractController
 
         return $this->json($produit, 200, [], ['groups' => 'produit:read']);
     }
-    #[Route('/', name: 'create', methods: ['POST'])]
+    #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         // Récupérer les données envoyées
