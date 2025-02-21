@@ -29,14 +29,14 @@ const Sidebar = () => {
         <Nav.Link as={Link} to="/dashboard" className="text-black">
           <i className="fas fa-chart-line me-2"></i> Dashboard
         </Nav.Link>
-        {/* <Nav.Link as={Link} to="/orders" className="text-white">
-          <i className="fas fa-box me-2"></i> Orders
-        </Nav.Link> */}
         <Nav.Link as={Link} to="/products" className="text-black">
           <i className="fas fa-th-large me-2"></i> Produits
         </Nav.Link>
         <Nav.Link as={Link} to="/categories" className="text-black">
           <i className="fas fa-users me-2"></i> categories
+        </Nav.Link>
+        <Nav.Link as={Link} to="/commandes" className="text-black">
+          <i className="fas fa-box me-2"></i> Commandes
         </Nav.Link>
       </Nav>
     </div>

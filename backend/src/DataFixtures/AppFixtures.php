@@ -15,6 +15,9 @@ class AppFixtures extends Fixture
     {
         $faker = Factory::create();
 
+        // Possible statuses
+        $statuses = ["Pending", "Dispatched", "Delivered", "Canceled"];
+
         // Création des catégories
         $categories = [];
         for ($i = 1; $i <= 3; $i++) {
@@ -40,6 +43,7 @@ class AppFixtures extends Fixture
         // Création des commandes
         for ($i = 1; $i <= 5; $i++) {
             $commande = new Commande();
+            $commande->setStatus($faker->randomElement($statuses)); // Set random status
             $manager->persist($commande);
 
             // Ajout de produits à la commande

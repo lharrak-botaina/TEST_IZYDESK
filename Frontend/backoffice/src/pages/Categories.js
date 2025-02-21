@@ -11,9 +11,12 @@ const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [show, setShow] = useState(false);
   const [newCategory, setNewCategory] = useState({ nom: "" });
   const [editingCategory, setEditingCategory] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteCategoryId, setDeleteCategoryId] = useState(null);
 
   useEffect(() => {
     loadCategories();
@@ -36,8 +39,10 @@ const CategoriesPage = () => {
     try {
       if (editingCategory) {
         await updateCategory(editingCategory.id, editingCategory);
+        setSuccess("Category updated successfully!");
       } else {
         await createCategory(newCategory);
+        setSuccess("Category added successfully!");
       }
       setNewCategory({ nom: "" });
       setEditingCategory(null);
@@ -45,6 +50,8 @@ const CategoriesPage = () => {
       loadCategories();
     } catch (err) {
       setError("Error saving category");
+    } finally {
+      hideAlertAfterDelay();
     }
   };
 
@@ -53,39 +60,47 @@ const CategoriesPage = () => {
     setShow(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      try {
-        await deleteCategory(id);
-        loadCategories();
-      } catch (err) {
-        setError("Error deleting category");
-      }
+  const handleConfirmDelete = (id) => {
+    setDeleteCategoryId(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteCategory(deleteCategoryId);
+      setSuccess("Category deleted successfully!");
+      loadCategories();
+    } catch (err) {
+      setError("Error deleting category");
+    } finally {
+      hideAlertAfterDelay();
+      setShowDeleteModal(false);
     }
+  };
+
+  const hideAlertAfterDelay = () => {
+    setTimeout(() => {
+      setError(null);
+      setSuccess(null);
+    }, 3000);
   };
 
   return (
     <div className="container mt-4">
-      <h1>Fresh Bootstrap Table - Categories</h1>
+      <h1>List Categories</h1>
 
-      {/* Add Category Button */}
+      {success && <Alert variant="success">{success}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
+
       <Button variant="dark" className="mb-3" onClick={() => setShow(true)}>
         + Add Category
       </Button>
 
       {loading && <Spinner animation="border" />}
-      {error && <Alert variant="danger">{error}</Alert>}
 
       {!loading && !error && (
         <div className="fresh-table full-color-orange">
-          <Table
-            id="fresh-table"
-            striped
-            bordered
-            hover
-            className="table"
-            responsive
-          >
+          <Table striped bordered hover responsive>
             <thead>
               <tr>
                 <th>ID</th>
@@ -97,7 +112,7 @@ const CategoriesPage = () => {
               {categories.map((category) => (
                 <tr key={category.id}>
                   <td>{category.id}</td>
-                  <td>{category.nom}</td> {/* Fixed Field */}
+                  <td>{category.nom}</td>
                   <td>
                     <Button
                       variant="info"
@@ -110,7 +125,7 @@ const CategoriesPage = () => {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => handleDelete(category.id)}
+                      onClick={() => handleConfirmDelete(category.id)}
                     >
                       <i className="fa fa-trash"></i>
                     </Button>
@@ -154,6 +169,22 @@ const CategoriesPage = () => {
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this category?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

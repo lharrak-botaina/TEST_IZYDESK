@@ -1,21 +1,21 @@
 import React from "react"
 import { Navigate } from "react-router-dom"
+// import Home from "../pages/Home"
 
 
-// Dashboard
-import Dashboard from "../pages/Dashboard/index"
+// Home
 
 //Tables
-import BasicTables from "../pages/BasicTables"
+// import BasicTables from "../pages/BasicTables"
 
 // Forms
 
 
 const userRoutes = [
-  { path: "/dashboard", component: <Dashboard /> },
+  // { path: "/home", component: <Home /> },
 
 
-  { path: "/tables-basic", component: <BasicTables /> },
+  // { path: "/tables-basic", component: <BasicTables /> },
  
 
   
@@ -23,7 +23,7 @@ const userRoutes = [
   {
     path: "/",
     exact: true,
-    component: <Navigate to="/dashboard" />,
+    component: <Navigate to="/Home" />,
   },
 ]
 

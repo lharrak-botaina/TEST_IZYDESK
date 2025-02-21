@@ -99,3 +99,42 @@ export const deleteCategory = async (id) => {
     throw error;
   }
 };
+
+
+export const fetchCommandes = async (status = "") => {
+  const url = status
+    ? `${API_URL}/commandes?status=${status}`
+    : `${API_URL}/commandes/`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch orders");
+  return await response.json();
+};
+
+
+export const createCommande = async (commandeData) => {
+  const response = await fetch(`${API_URL}/commandes/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(commandeData),
+  });
+  if (!response.ok) throw new Error("Failed to create order");
+  return await response.json();
+};
+
+export const updateCommande = async (id, commandeData) => {
+  const response = await fetch(`${API_URL}/commandes/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(commandeData),
+  });
+  if (!response.ok) throw new Error("Failed to update order");
+  return await response.json();
+};
+
+export const deleteCommande = async (id) => {
+  const response = await fetch(`${API_URL}/commandes/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Failed to delete order");
+  return await response.json();
+};

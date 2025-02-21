@@ -22,16 +22,29 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/', name: 'list', methods: ['GET'])]
-    public function list(CommandeRepository $commandeRepository): JsonResponse
+    public function list(CommandeRepository $commandeRepository, Request $request): JsonResponse
     {
-        $commandes = $commandeRepository->findAll();
+        $status = $request->query->get('status');
+
+        if ($status) {
+            $validStatuses = [Commande::STATUS_PENDING, Commande::STATUS_DISPATCHED, Commande::STATUS_DELIVERED, Commande::STATUS_CANCELED];
+
+            if (!in_array($status, $validStatuses, true)) {
+                return $this->json(['message' => "Invalid status: $status. Allowed statuses: " . implode(", ", $validStatuses)], 400);
+            }
+
+            $commandes = $commandeRepository->findBy(['status' => $status]);
+        } else {
+            $commandes = $commandeRepository->findAll();
+        }
 
         if (empty($commandes)) {
-            return $this->json(['message' => 'Aucune commande trouvée'], 404);
+            return $this->json(['message' => 'No orders found'], 404);
         }
 
         return $this->json($commandes, 200, [], ['groups' => 'commande:read']);
     }
+
     #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(CommandeRepository $commandeRepository, int $id): JsonResponse
     {
@@ -43,6 +56,7 @@ class CommandeController extends AbstractController
 
         return $this->json($commande, 200, [], ['groups' => 'commande:read']);
     }
+
     #[Route('/', name: 'create', methods: ['POST'])]
     public function create(Request $request, ProduitRepository $produitRepository): JsonResponse
     {
@@ -72,11 +86,15 @@ class CommandeController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Commande créée avec succès', 'id' => $commande->getId()], 201);
+        return $this->json([
+            'message' => 'Commande créée avec succès',
+            'id' => $commande->getId(),
+            'status' => $commande->getStatus()
+        ], 201);
     }
 
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
-    public function update(Request $request, CommandeRepository $commandeRepository, ProduitRepository $produitRepository, int $id): JsonResponse
+    public function update(Request $request, CommandeRepository $commandeRepository, int $id): JsonResponse
     {
         $commande = $commandeRepository->find($id);
         if (!$commande) {
@@ -84,35 +102,24 @@ class CommandeController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['produits']) || empty($data['produits'])) {
-            return $this->json(['message' => 'Aucun produit sélectionné'], 400);
-        }
 
-        // Supprime les anciens produits
-        foreach ($commande->getProduits() as $commandeProduit) {
-            $this->entityManager->remove($commandeProduit);
-        }
-
-        // Ajoute les nouveaux produits
-        foreach ($data['produits'] as $produitData) {
-            $produit = $produitRepository->find($produitData['id']);
-
-            if (!$produit) {
-                return $this->json(['message' => "Produit ID {$produitData['id']} non trouvé"], 404);
+        if (isset($data['status'])) {
+            try {
+                $commande->setStatus($data['status']);
+            } catch (\InvalidArgumentException $e) {
+                return $this->json(['message' => $e->getMessage()], 400);
             }
-
-            $commandeProduit = new CommandeProduit();
-            $commandeProduit->setCommande($commande);
-            $commandeProduit->setProduit($produit);
-            $commandeProduit->setQuantite($produitData['quantite'] ?? 1);
-
-            $this->entityManager->persist($commandeProduit);
         }
 
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Commande mise à jour avec succès'], 200);
+        return $this->json([
+            'message' => 'Commande mise à jour avec succès',
+            'status' => $commande->getStatus()
+        ], 200);
     }
+
+
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(CommandeRepository $commandeRepository, int $id): JsonResponse
     {

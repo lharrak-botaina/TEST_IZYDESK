@@ -42,48 +42,70 @@ class ProduitController extends AbstractController
         return $this->json($produit, 200, [], ['groups' => 'produit:read']);
     }
     #[Route('', name: 'create', methods: ['POST'])]
+    // #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        // Récupérer les données envoyées
-        $data = json_decode($request->getContent(), true);
-
-        // Vérifier que les données requises sont présentes
-        if (!isset($data['nom'], $data['description'], $data['prix'], $data['image'], $data['categorie_id'])) {
-            return $this->json(['message' => 'Données manquantes'], 400);
-        }
-
-        // Vérification du type et de la validité du prix
-        if (!is_numeric($data['prix']) || $data['prix'] < 0) {
-            return $this->json(['message' => 'Prix invalide'], 400);
-        }
-
-        // Récupérer la catégorie associée
-        $categorie = $entityManager->getRepository(Categorie::class)->find($data['categorie_id']);
-        if (!$categorie) {
-            return $this->json(['message' => 'Catégorie non trouvée'], 404);
-        }
-
-        // Créer un nouveau produit
-        $produit = new Produit();
-        $produit->setNom($data['nom']);
-        $produit->setDescription($data['description']);
-        $produit->setPrix((float) $data['prix']);
-        $produit->setImage($data['image']);
-        $produit->setCategorie($categorie);
-
-        // Enregistrer dans la base de données
         try {
+            // Retrieve text fields
+            $data = $request->request->all();
+            $imageFile = $request->files->get('image'); // Get uploaded file
+
+            // Validate required fields
+            if (!isset($data['nom'], $data['description'], $data['prix'], $data['categorie_id']) || !$imageFile) {
+                return $this->json(['message' => 'Données manquantes'], 400);
+            }
+
+            // Validate price
+            if (!is_numeric($data['prix']) || $data['prix'] < 0) {
+                return $this->json(['message' => 'Prix invalide'], 400);
+            }
+
+            // Retrieve category
+            $categorie = $entityManager->getRepository(Categorie::class)->find($data['categorie_id']);
+            if (!$categorie) {
+                return $this->json(['message' => 'Catégorie non trouvée'], 404);
+            }
+
+            // Handle file upload (save to 'uploads/' directory)
+            $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/uploads/';
+            $imageFileName = uniqid() . '.' . $imageFile->getClientOriginalExtension(); // Fixed extension guessing
+
+            if (!is_dir($uploadsDir)) {
+                mkdir($uploadsDir, 0777, true);
+            }
+
+            $imageFile->move($uploadsDir, $imageFileName);
+            $imagePath = '/uploads/' . $imageFileName;
+
+            // Create new product
+            $produit = new Produit();
+            $produit->setNom($data['nom']);
+            $produit->setDescription($data['description']);
+            $produit->setPrix((float) $data['prix']);
+            $produit->setImage($imagePath);
+            $produit->setCategorie($categorie);
+
+            // Save to database
             $entityManager->persist($produit);
             $entityManager->flush();
 
             return $this->json([
                 'message' => 'Produit créé avec succès',
-                'id' => $produit->getId()
+                'id' => $produit->getId(),
+                'image' => $request->getSchemeAndHttpHost() . $imagePath
+
             ], 201);
+
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Erreur lors de la création', 'error' => $e->getMessage()], 500);
+            return $this->json([
+                'message' => 'Erreur interne',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
+
+
+
 
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(ProduitRepository $produitRepository, EntityManagerInterface $entityManager, Request $request, int $id): JsonResponse
