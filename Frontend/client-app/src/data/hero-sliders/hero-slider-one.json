@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "title": "Our Products",
+    "subtitle": "Offer 2024 Collection",
+    "image": "/assets/img/slider/single-slide-hm1-2.jpeg",
+    "url": "/shop-grid-standard"
+  },
+  {
+    "id": 2,
+    "title": "Our Products",
+    "subtitle": "Offer 2024 Collection",
+    "image": "/assets/img/slider/single-slide-1.jpg",
+    "url": "/shop-grid-standard"
+  }
+]

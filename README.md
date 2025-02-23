@@ -1,13 +1,72 @@
 # TEST_IZYDESK
-## 🛒 E-commerce API (Symfony + Stripe)
 
-Ce projet est une API e-commerce développée avec **Symfony**, permettant la gestion des produits, catégories, commandes et l'intégration de **Stripe** pour le paiement.
+## Backend Setup
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/lharrak-botaina/TEST_IZYDESK
+   ```
+
+2. Navigate to the backend directory:
+   ```sh
+   cd backend
+   ```
+
+3. Install dependencies:
+   ```sh
+   composer install
+   ```
+
+4. Create the database:
+   ```sh
+   php bin/console doctrine:database:create
+   ```
+
+5. Run database migrations:
+   ```sh
+   php bin/console doctrine:migrations:migrate
+   ```
+
+6. Load fixtures (if applicable):
+   ```sh
+   php bin/console doctrine:fixtures:load
+   ```
+
+7. Start the Symfony server:
+   ```sh
+   symfony serve
+   ```
 
 ---
 
-## 🚀 Installation et Configuration
+## Backoffice Setup
 
-### 1️⃣ **Cloner le projet**
-```sh
-git clone https://github.com/votre-repo/ecommerce-symfony.git
-cd ecommerce-symfony
+1. Navigate to the backoffice directory:
+   ```sh
+   cd frontend/backoffice
+   ```
+
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+
+3. Start the development server:
+   ```sh
+   npm start
+   ```
+
+---
+
+## ClientApp Setup
+
+1. Navigate to the client-app directory:
+   ```sh
+   cd frontend/client-app
+   ```
+
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+

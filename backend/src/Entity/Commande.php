@@ -9,10 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity()]
 class Commande
 {
-    public const STATUS_PENDING = "Pending";
-    public const STATUS_DISPATCHED = "Dispatched";
-    public const STATUS_DELIVERED = "Delivered";
-    public const STATUS_CANCELED = "Canceled";
+    private const STATUS_OPTIONS = ["Pending", "Shipped", "Delivered", "Canceled"];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,7 +23,7 @@ class Commande
 
     #[ORM\Column(type: "string", length: 20)]
     #[Groups(["commande:read"])]
-    private string $status = self::STATUS_PENDING;
+    private  $status ="Pending";
 
     #[ORM\OneToMany(mappedBy: "commande", targetEntity: CommandeProduit::class, cascade: ["persist", "remove"])]
     #[Groups(["commande:read"])]
@@ -53,22 +50,14 @@ class Commande
         return $this->status;
     }
 
-    public function setStatus(string $status): static
-    {
-        $validStatuses = [
-            self::STATUS_PENDING,
-            self::STATUS_DISPATCHED,
-            self::STATUS_DELIVERED,
-            self::STATUS_CANCELED,
-        ];
-
-        if (!in_array($status, $validStatuses, true)) {
-            throw new \InvalidArgumentException("Invalid status: $status");
-        }
-
-        $this->status = $status;
-        return $this;
+    public function setStatus(string $status): self
+{
+    if (!in_array($status, self::STATUS_OPTIONS, true)) {
+        throw new \InvalidArgumentException("Invalid status: $status");
     }
+    $this->status = $status;
+    return $this;
+}
 
     public function getProduits(): Collection
     {

@@ -94,41 +94,21 @@ const CommandesPage = () => {
   const getStatusBadge = (status) => {
     const statusColors = {
       Pending: "warning",
-      Dispatched: "info",
-      Delivered: "primary",
-      Canceled: "danger",
+      Shipped: "info",
+      Delivered: "success",
+      Canceled: "secondary",
     };
     return <span className={`badge bg-${statusColors[status]}`}>{status}</span>;
   };
 
   return (
     <div className="container mt-4">
-      <h1>Orders Management</h1>
+      <h1>Commandes Management</h1>
 
       {success && <Alert variant="success">{success}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <div className="d-flex justify-content-between mb-3">
-        <Dropdown>
-          <Dropdown.Toggle variant="secondary">
-            Filter: {statusFilter}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            {["All", "Pending", "Dispatched", "Delivered", "Canceled"].map(
-              (status) => (
-                <Dropdown.Item
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                >
-                  {status}
-                </Dropdown.Item>
-              )
-            )}
-          </Dropdown.Menu>
-        </Dropdown>
-      </div>
-
-      {loading && <Spinner animation="border" />}
+      
 
       {!loading && (
         <Table striped bordered hover responsive>

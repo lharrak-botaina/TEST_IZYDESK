@@ -172,15 +172,16 @@ const handleDelete = async () => {
               {produits.map((produit) => (
                 <tr key={produit.id}>
                   <td>
-                    <img
-                      src={`http://localhost:8000${produit.image}`}
-                      alt={produit.nom}
-                      width="100"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/50";
-                      }}
-                    />
+                  <img
+  src={`http://localhost:8000/${produit.image}`}
+  alt={produit.nom}
+  width="100"
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = "https://via.placeholder.com/50";
+  }}
+/>
+
                   </td>
                   <td>{produit.nom}</td>
                   <td>{produit.categorie.nom}</td>
